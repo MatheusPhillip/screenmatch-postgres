@@ -2,23 +2,24 @@ package br.com.alura.screenmatch.principal;
 
 import br.com.alura.screenmatch.model.DadosSerie;
 import br.com.alura.screenmatch.model.DadosTemporada;
-import br.com.alura.screenmatch.model.Episodio;
 import br.com.alura.screenmatch.model.Serie;
 import br.com.alura.screenmatch.repository.SerieRepository;
 import br.com.alura.screenmatch.service.ConsumoApi;
 import br.com.alura.screenmatch.service.ConverteDados;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+@Component
 public class Principal {
-
     private Scanner leitura = new Scanner(System.in);
     private ConsumoApi consumo = new ConsumoApi();
     private ConverteDados conversor = new ConverteDados();
     private final String ENDERECO = "https://www.omdbapi.com/?t=";
-    private final String API_KEY = "&apikey=67abc709";
+
+    @Value("${omdb.api.key}")
+    private String API_KEY;
 
     private List<DadosSerie> dadosSeries = new ArrayList<>();
 
@@ -27,7 +28,6 @@ public class Principal {
     public Principal(SerieRepository repositorio) {
         this.repositorio = repositorio;
     }
-
 
     public void exibeMenu() {
         var opcao = -1;
@@ -39,7 +39,6 @@ public class Principal {
                                     
                     0 - Sair                                 
                     """;
-
 
             System.out.println(menu);
             opcao = leitura.nextInt();
@@ -66,10 +65,8 @@ public class Principal {
 
     private void buscarSerieWeb() {
         DadosSerie dados = getDadosSerie();
-        //dadosSeries.add(dados);
         Serie serie = new Serie(dados);
         repositorio.save(serie);
-        System.out.println(dados);
     }
 
     private DadosSerie getDadosSerie() {
@@ -94,10 +91,7 @@ public class Principal {
 
     private void listarSeriesPesquisadas(){
 
-        List<Serie> series = new ArrayList<>();
-        series = dadosSeries.stream()
-                .map(d -> new Serie(d))
-                        .collect(Collectors.toList());
+        List<Serie> series = repositorio.findAll();
         series.stream()
                 .sorted(Comparator.comparing(Serie::getGenero))
                 .forEach(System.out::println);
